@@ -13,12 +13,12 @@ It compiles the package.
 All of the following inputs are optional.
 
 - `coverage`:
-  - Boolean that determines whether code coverage is turned by adding `--coverage` to `CFLAGS`, `CXXFLAGS` and `LDFLAGS`.
+  - Boolean that determines whether code coverage is turned on by adding `--coverage` to `CFLAGS`, `CXXFLAGS` and `LDFLAGS`.
   - default: `'true'`
 
 ### What's new in v2
 
-- The environment variable `NO_COVERAGE` was replaced by action input `coverage`.
+- The environment variable `NO_COVERAGE` was replaced by the action input `coverage`.
   To disable compiling code with coverage collection enabled, previously one had to
   set `NO_COVERAGE` to any non-empty value. This can now be achieved by setting the
   `coverage` input to `false`.
