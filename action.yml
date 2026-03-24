@@ -96,7 +96,54 @@ runs:
 
           todo := [ orig ];;
           done := [];;
-          depth := 1;
+          depth := 1;;
+
+          BindGlobal(
+            "build_pkg_check",
+            function( info, field, mode )
+              return IsBound( info.(field) ) and (
+                mode = "recursive" or ( mode = "true" and depth = 1 )
+              );
+            end
+          );
+
+          BindGlobal(
+            "build_pkg_add_todo",
+            function( pkg, desc, aset )
+              local name;
+              name := LowercaseString( pkg[1] );
+              Print( "  - ", desc, " '", name, "'\n" );
+              if not name in done then
+                AddSet( aset, name );
+              fi;
+            end
+          );
+
+          BindGlobal(
+            "build_pkg_gather_deps",
+            function( info, field, mode, desc, aset )
+              local pkg;
+              if build_pkg_check( info.Dependencies, field, mode ) then
+                for pkg in info.Dependencies.(field) do
+                  build_pkg_add_todo( pkg, desc, aset );
+                od;
+              fi;
+            end
+          );
+
+          BindGlobal(
+            "build_pkg_gather_exts",
+            function( info, mode, aset )
+              local ext, pkg;
+              if build_pkg_check( info, "Extensions", mode ) then
+                for ext in info.Extensions do
+                  for pkg in ext.needed do
+                    build_pkg_add_todo( pkg,"has an extension that needs package", todo );
+                  od;
+                od;
+              fi;
+            end
+          );
 
           while not IsEmpty( todo ) do
             curr := Remove( todo );
@@ -105,62 +152,38 @@ runs:
             info := GAPInfo.PackagesInfo.(curr)[1];
 
             # Needed packages
-            if ( IsBound( info.Dependencies.NeededOtherPackages ) and ( 
-              "${{ inputs.build-needed-pkgs }}" = "recursive" or
-              ( "${{ inputs.build-needed-pkgs }}" = "true" and depth = 1 )
-            )) then
-              for pkg in info.Dependencies.NeededOtherPackages do
-                name := LowercaseString( pkg[1] );
-                Print( "  - needs package '", name, "'\n" );
-                if not name in done then
-                  AddSet( todo, name );
-                fi;
-              od;
-            fi;
+            build_pkg_gather_deps(
+              info,
+              "NeededOtherPackages",
+              "${{ inputs.build-needed-pkgs }}",
+              "needs package",
+              todo
+            );
 
             # Suggested packages
-            if ( IsBound( info.Dependencies.SuggestedOtherPackages ) and ( 
-              "${{ inputs.build-suggested-pkgs }}" = "recursive" or
-              ( "${{ inputs.build-suggested-pkgs }}" = "true" and depth = 1 )
-            )) then
-              for pkg in info.Dependencies.SuggestedOtherPackages do
-                name := LowercaseString( pkg[1] );
-                Print( "  - suggests package '", name, "'\n" );
-                if not name in done then
-                  AddSet( todo, name );
-                fi;
-              od;
-            fi;
-
-            # Package extensions
-            if ( IsBound( info.Extensions ) and ( 
-              "${{ inputs.build-extensions }}" = "recursive" or
-              ( "${{ inputs.build-extensions }}" = "true" and depth = 1 )
-            )) then
-              for ext in info.Extensions do
-                for pkg in ext.needed do
-                  name := LowercaseString( pkg[1] );
-                  Print( "  - needs package '", name, "' for an extension\n" );
-                  if not name in done then
-                    AddSet( todo, name );
-                  fi;
-                od;
-              od;
-            fi;
-
+            build_pkg_gather_deps(
+              info,
+              "SuggestedOtherPackages",
+              "${{ inputs.build-suggested-pkgs }}",
+              "suggests package",
+              todo
+            );
+            
             # Test packages
-            if ( IsBound( info.Dependencies.TestPackages ) and ( 
-              "${{ inputs.build-test-pkgs }}" = "recursive" or
-              ( "${{ inputs.build-test-pkgs }}" = "true" and depth = 1 )
-            )) then
-              for pkg in info.Dependencies.TestPackages do
-                name := LowercaseString( pkg[1] );
-                Print( "  - is tested using package '", name, "'\n" );
-                if not name in done then
-                  AddSet( todo, name );
-                fi;
-              od;
-            fi;
+            build_pkg_gather_deps(
+              info,
+              "TestPackages",
+              "${{ inputs.build-test-pkgs }}",
+              "is tested using package",
+              todo
+            );
+            
+            # Package extensions
+            build_pkg_gather_exts(
+              info,
+              "${{ inputs.build-extensions }}",
+              todo
+            );
 
             depth := depth + 1;;
           od;
