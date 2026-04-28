@@ -213,7 +213,7 @@ runs:
           ./autogen.sh
         fi
         if [[ -x configure ]]; then
-          ./configure --with-gaproot=$GAPROOT ${{ inputs.CONFIGFLAGS }}
+          ./configure --with-gaproot=$GAPROOT ${{ inputs.configflags }}
           make -j4 CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS"
         fi
 
