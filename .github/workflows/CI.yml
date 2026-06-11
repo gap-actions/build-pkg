@@ -16,6 +16,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         gap-version:
           - devel
+          - v4.16
           - v4.15
           - v4.14
           - v4.13
@@ -55,8 +56,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
+        pkg: [gap-packages/alnuth, stertooy/smallclassnr]
         gap-version:
           - devel
+          - v4.15
           - v4.13
           - v4.11
 
@@ -65,8 +68,8 @@ jobs:
       # the target folder of the checkout action is removed
       - uses: actions/checkout@v6
         with:
-          # TODO: use a "real" package with a non-empty TestPackages and NeededSystemPackages record
-          repository: stertooy/alnuth
+          # TODO: use a single package with non-empty TestPackages *and* NeededSystemPackages records
+          repository: ${{ matrix.pkg }}
       - uses: actions/checkout@v6
         with:
           path: this-action/
