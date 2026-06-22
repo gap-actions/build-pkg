@@ -35,10 +35,10 @@ jobs:
       # the target folder of the checkout action is removed
       - uses: gap-actions/setup-cygwin@v2
         if: ${{ matrix.os == 'windows-latest' }}
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           repository: gap-packages/example
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           path: this-action/
       - uses: gap-actions/setup-gap@v3
@@ -66,11 +66,11 @@ jobs:
     steps:
       # the order of the checkout actions is important because all contents of
       # the target folder of the checkout action is removed
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # TODO: use a single package with non-empty TestPackages *and* NeededSystemPackages records
           repository: ${{ matrix.pkg }}
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           path: this-action/
       - uses: gap-actions/setup-gap@v3
